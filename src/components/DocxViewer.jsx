@@ -1,0 +1,282 @@
+import { useRef, forwardRef, useImperativeHandle, useState, useCallback, useEffect } from 'react';
+import { renderAsync } from 'docx-preview';
+
+// Page dimensions in pixels (US Letter at 96 DPI)
+const PAGE_WIDTH = 816;   // 8.5 inches at 96 DPI
+const PAGE_HEIGHT = 1056; // 11 inches at 96 DPI
+
+/**
+ * DocxViewer Component
+ * Renders DOCX files with proper virtual pagination - multiple pages with breaks
+ */
+const DocxViewer = forwardRef(({
+    zoom = 100,
+    onPageCountChange,
+    onWordCountChange,
+    onContentChange,
+}, ref) => {
+    const containerRef = useRef(null);
+    const hiddenContainerRef = useRef(null);
+    const styleContainerRef = useRef(null);
+    const editableRef = useRef(null);
+    const [isDocxLoaded, setIsDocxLoaded] = useState(false);
+    const [pageCount, setPageCount] = useState(1);
+    const [contentHeight, setContentHeight] = useState(0);
+
+    // Calculate number of pages based on content height
+    const calculatePages = useCallback(() => {
+        if (!hiddenContainerRef.current) return 1;
+
+        const wrapper = hiddenContainerRef.current.querySelector('.docx-wrapper');
+        if (!wrapper) return 1;
+
+        // Get the total scrollable height of the content
+        const height = wrapper.scrollHeight;
+        setContentHeight(height);
+
+        // Calculate pages (at least 1)
+        const pages = Math.max(1, Math.ceil(height / PAGE_HEIGHT));
+        setPageCount(pages);
+
+        if (onPageCountChange) {
+            onPageCountChange(pages);
+        }
+
+        return pages;
+    }, [onPageCountChange]);
+
+    // Expose methods to parent
+    useImperativeHandle(ref, () => ({
+        async importFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+
+                reader.onload = async (e) => {
+                    try {
+                        const arrayBuffer = e.target.result;
+
+                        // Clear existing content
+                        if (hiddenContainerRef.current) {
+                            hiddenContainerRef.current.innerHTML = '';
+                        }
+
+                        // Render DOCX to hidden container first
+                        await renderAsync(arrayBuffer, hiddenContainerRef.current, styleContainerRef.current, {
+                            className: 'docx',
+                            inWrapper: true,
+                            ignoreWidth: false,
+                            ignoreHeight: true, // Ignore height to get full content
+                            ignoreFonts: false,
+                            breakPages: false, // We handle pagination ourselves
+                            ignoreLastRenderedPageBreak: true,
+                            experimental: true,
+                            trimXmlDeclaration: true,
+                            useBase64URL: true,
+                            renderHeaders: true,
+                            renderFooters: true,
+                            renderFootnotes: true,
+                            renderEndnotes: true,
+                        });
+
+                        setIsDocxLoaded(true);
+
+                        // Wait for render then calculate pages
+                        setTimeout(() => {
+                            calculatePages();
+                            updateWordCount();
+                        }, 300);
+
+                        resolve({ success: true });
+                    } catch (error) {
+                        console.error('Import error:', error);
+                        reject(error);
+                    }
+                };
+
+                reader.onerror = () => reject(new Error('Failed to read file'));
+                reader.readAsArrayBuffer(file);
+            });
+        },
+
+        getContent() {
+            if (isDocxLoaded && hiddenContainerRef.current) {
+                return hiddenContainerRef.current.innerHTML;
+            }
+            return editableRef.current?.innerHTML || '';
+        },
+
+        clear() {
+            if (hiddenContainerRef.current) {
+                hiddenContainerRef.current.innerHTML = '';
+            }
+            if (editableRef.current) {
+                editableRef.current.innerHTML = '';
+            }
+            setPageCount(1);
+            setContentHeight(0);
+            setIsDocxLoaded(false);
+        },
+
+        focus() {
+            editableRef.current?.focus();
+        },
+
+        get innerText() {
+            if (isDocxLoaded && hiddenContainerRef.current) {
+                return hiddenContainerRef.current.innerText || '';
+            }
+            return editableRef.current?.innerText || '';
+        },
+
+        get innerHTML() {
+            if (isDocxLoaded && hiddenContainerRef.current) {
+                return hiddenContainerRef.current.innerHTML || '';
+            }
+            return editableRef.current?.innerHTML || '';
+        },
+    }));
+
+    // Update word count
+    const updateWordCount = useCallback(() => {
+        if (!onWordCountChange) return;
+
+        let text = '';
+        if (isDocxLoaded && hiddenContainerRef.current) {
+            text = hiddenContainerRef.current.innerText || '';
+        } else if (editableRef.current) {
+            text = editableRef.current.innerText || '';
+        }
+
+        const words = text.trim().split(/\s+/).filter(w => w.length > 0);
+        onWordCountChange(words.length);
+    }, [onWordCountChange, isDocxLoaded]);
+
+    // Handle content changes in edit mode
+    const handleInput = () => {
+        if (onContentChange) {
+            onContentChange();
+        }
+        updateWordCount();
+    };
+
+    // Generate page elements
+    const renderPages = () => {
+        const pages = [];
+
+        for (let i = 0; i < pageCount; i++) {
+            pages.push(
+                <div
+                    key={i}
+                    className="virtual-page"
+                    style={{
+                        width: `${PAGE_WIDTH}px`,
+                        height: `${PAGE_HEIGHT}px`,
+                        background: 'white',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        marginBottom: '20px',
+                    }}
+                >
+                    {/* This div clips to show only one page's worth of content */}
+                    <div
+                        className="page-content-viewport"
+                        style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            overflow: 'hidden',
+                        }}
+                    >
+                        {/* Content shifted up to show the right "page" */}
+                        <div
+                            className="page-content-shift"
+                            style={{
+                                position: 'absolute',
+                                top: `${-i * PAGE_HEIGHT}px`,
+                                left: 0,
+                                width: '100%',
+                            }}
+                            dangerouslySetInnerHTML={{
+                                __html: hiddenContainerRef.current?.innerHTML || ''
+                            }}
+                        />
+                    </div>
+                    {/* Page number */}
+                    <div
+                        className="page-number"
+                        style={{
+                            position: 'absolute',
+                            bottom: '20px',
+                            right: '40px',
+                            fontSize: '10pt',
+                            color: '#666',
+                        }}
+                    >
+                        {i + 1}
+                    </div>
+                </div>
+            );
+        }
+
+        return pages;
+    };
+
+    return (
+        <div className="document-canvas">
+            {/* Style container for docx-preview styles */}
+            <div ref={styleContainerRef} id="docx-styles" />
+
+            {/* Hidden container for initial render - used to calculate height */}
+            <div
+                ref={hiddenContainerRef}
+                className="hidden-render-container"
+                style={{
+                    position: 'absolute',
+                    left: '-9999px',
+                    top: 0,
+                    visibility: 'hidden',
+                    width: `${PAGE_WIDTH}px`,
+                }}
+            />
+
+            {/* Visible pages container with zoom */}
+            <div
+                ref={containerRef}
+                className="pages-container"
+                style={{
+                    transform: `scale(${zoom / 100})`,
+                    transformOrigin: 'top center',
+                    transition: 'transform 0.2s ease',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    padding: '10px 0',
+                }}
+            >
+                {/* Render virtual pages when DOCX is loaded */}
+                {isDocxLoaded && pageCount > 0 && renderPages()}
+
+                {/* Editable page (visible when no docx loaded) */}
+                {!isDocxLoaded && (
+                    <div className="page">
+                        <div
+                            ref={editableRef}
+                            className="page-content"
+                            contentEditable
+                            suppressContentEditableWarning
+                            onInput={handleInput}
+                            spellCheck="true"
+                        />
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+});
+
+DocxViewer.displayName = 'DocxViewer';
+
+export default DocxViewer;
