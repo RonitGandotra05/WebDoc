@@ -7,8 +7,19 @@ import SearchPanel from './components/SearchPanel';
 import TableDialog from './components/TableDialog';
 import { exportDocx } from './utils/docxHandler';
 
+// LocalStorage keys for persistence
+const STORAGE_KEYS = {
+  DOCUMENT_CONTENT: 'wordEditor_documentContent',
+  DOCUMENT_STYLES: 'wordEditor_documentStyles',  // CSS styles from docx-preview
+  DOCUMENT_NAME: 'wordEditor_documentName',
+  LAST_SAVED: 'wordEditor_lastSaved',
+};
+
 function App() {
-  const [documentName, setDocumentName] = useState('Document1');
+  // Load saved document name from localStorage or use default
+  const [documentName, setDocumentName] = useState(() => {
+    return localStorage.getItem(STORAGE_KEYS.DOCUMENT_NAME) || 'Document1';
+  });
   const [activeTab, setActiveTab] = useState('home');
   const [showFileMenu, setShowFileMenu] = useState(false);
   const [showSearchPanel, setShowSearchPanel] = useState(false);
@@ -19,6 +30,7 @@ function App() {
   const [pageCount, setPageCount] = useState(1);
   const [wordCount, setWordCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Format states
   const [formatState, setFormatState] = useState({
@@ -36,6 +48,79 @@ function App() {
 
   const editorRef = useRef(null);
   const fileInputRef = useRef(null);
+  const autoSaveTimerRef = useRef(null);
+
+  // Save document to localStorage (including styles for DOCX)
+  const saveToLocalStorage = useCallback(() => {
+    try {
+      const content = editorRef.current?.getContent() || '';
+      const styles = editorRef.current?.getStyles() || '';
+      if (content) {
+        localStorage.setItem(STORAGE_KEYS.DOCUMENT_CONTENT, content);
+        localStorage.setItem(STORAGE_KEYS.DOCUMENT_STYLES, styles);
+        localStorage.setItem(STORAGE_KEYS.DOCUMENT_NAME, documentName);
+        localStorage.setItem(STORAGE_KEYS.LAST_SAVED, new Date().toISOString());
+        setHasUnsavedChanges(false);
+        console.log('Document auto-saved (with styles)');
+      }
+    } catch (error) {
+      console.error('Failed to save to localStorage:', error);
+    }
+  }, [documentName]);
+
+  // Load document from localStorage on mount
+  useEffect(() => {
+    const savedContent = localStorage.getItem(STORAGE_KEYS.DOCUMENT_CONTENT);
+    const savedStyles = localStorage.getItem(STORAGE_KEYS.DOCUMENT_STYLES);
+    if (savedContent) {
+      // Wait for component to mount, then restore content with styles
+      const restoreContent = () => {
+        if (editorRef.current && editorRef.current.setContent) {
+          editorRef.current.setContent(savedContent, savedStyles);
+          console.log('Document restored from localStorage (with styles)');
+        } else {
+          // Retry if editor not ready yet
+          setTimeout(restoreContent, 100);
+        }
+      };
+      setTimeout(restoreContent, 200);
+    }
+  }, []);
+
+  // Auto-save on content change (debounced)
+  const triggerAutoSave = useCallback(() => {
+    setHasUnsavedChanges(true);
+
+    // Clear existing timer
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+
+    // Set new timer for auto-save (save after 2 seconds of inactivity)
+    autoSaveTimerRef.current = setTimeout(() => {
+      saveToLocalStorage();
+    }, 2000);
+  }, [saveToLocalStorage]);
+
+  // Save document name when it changes
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.DOCUMENT_NAME, documentName);
+  }, [documentName]);
+
+  // Warn before leaving with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+        // Force save before leaving
+        saveToLocalStorage();
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges, saveToLocalStorage]);
 
   // Track format state from selection
   const updateFormatFromSelection = useCallback(() => {
@@ -76,6 +161,8 @@ function App() {
     try {
       await editorRef.current?.importFile(file);
       setDocumentName(file.name.replace('.docx', ''));
+      // Trigger auto-save after import
+      triggerAutoSave();
     } catch (error) {
       console.error('Import failed:', error);
       alert('Failed to import document: ' + error.message);
@@ -83,7 +170,7 @@ function App() {
       setIsLoading(false);
       setLoadingMessage('');
     }
-  }, []);
+  }, [triggerAutoSave]);
 
   // Handle file export
   const handleExport = useCallback(async () => {
@@ -108,14 +195,21 @@ function App() {
     setWordCount(0);
     setPageCount(1);
     setShowFileMenu(false);
+    // Clear localStorage
+    localStorage.removeItem(STORAGE_KEYS.DOCUMENT_CONTENT);
+    localStorage.removeItem(STORAGE_KEYS.DOCUMENT_STYLES);
+    localStorage.removeItem(STORAGE_KEYS.LAST_SAVED);
+    setHasUnsavedChanges(false);
   }, []);
 
-  // Update word count
+  // Update word count and trigger auto-save
   const updateWordCount = useCallback(() => {
     const text = editorRef.current?.innerText || '';
     const words = text.trim().split(/\s+/).filter(w => w.length > 0);
     setWordCount(words.length);
-  }, []);
+    // Trigger auto-save on content change
+    triggerAutoSave();
+  }, [triggerAutoSave]);
 
   // Insert table
   const handleInsertTable = useCallback((rows, cols) => {
@@ -209,7 +303,7 @@ function App() {
             break;
           case 'n':
             e.preventDefault();
-            handleNewWithClear();
+            handleNew();
             break;
         }
       }
@@ -217,69 +311,7 @@ function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [executeFormat, handleExport, handleNewWithClear]);
-
-  // Auto-save to localStorage
-  const STORAGE_KEY = 'word-editor-document';
-  const STORAGE_NAME_KEY = 'word-editor-document-name';
-
-  // Save content to localStorage periodically
-  useEffect(() => {
-    const saveInterval = setInterval(() => {
-      if (editorRef.current) {
-        const content = editorRef.current.getContent?.() || editorRef.current.innerHTML || '';
-        if (content && content.trim()) {
-          try {
-            localStorage.setItem(STORAGE_KEY, content);
-            localStorage.setItem(STORAGE_NAME_KEY, documentName);
-          } catch (e) {
-            console.warn('Failed to save to localStorage:', e);
-          }
-        }
-      }
-    }, 2000); // Save every 2 seconds
-
-    return () => clearInterval(saveInterval);
-  }, [documentName]);
-
-  // Load saved content on startup
-  useEffect(() => {
-    const savedContent = localStorage.getItem(STORAGE_KEY);
-    const savedName = localStorage.getItem(STORAGE_NAME_KEY);
-
-    if (savedContent && savedContent.trim()) {
-      // Wait for editor to be ready, then load content
-      const loadSaved = () => {
-        if (editorRef.current) {
-          // Check if there's a setContent method or use innerHTML
-          if (typeof editorRef.current.setContent === 'function') {
-            editorRef.current.setContent(savedContent);
-          } else if (editorRef.current.innerHTML !== undefined) {
-            editorRef.current.innerHTML = savedContent;
-          }
-          if (savedName) {
-            setDocumentName(savedName);
-          }
-          updateWordCount();
-        }
-      };
-
-      // Small delay to ensure editor is mounted
-      setTimeout(loadSaved, 100);
-    }
-  }, []); // Only run once on mount
-
-  // Clear localStorage when creating new document (update handleNew)
-  const handleNewWithClear = useCallback(() => {
-    editorRef.current?.clear();
-    setDocumentName('Document1');
-    setWordCount(0);
-    setPageCount(1);
-    setShowFileMenu(false);
-    // Clear saved content
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(STORAGE_NAME_KEY);
-  }, []);
+  }, [executeFormat, handleExport, handleNew]);
 
   return (
     <div className="app-container">
@@ -297,7 +329,7 @@ function App() {
         <div className="title-bar-left">
           <i className="fa-solid fa-file-word app-icon"></i>
           <div className="quick-access-toolbar">
-            <button className="quick-access-btn" onClick={handleNewWithClear} title="New">
+            <button className="quick-access-btn" onClick={handleNew} title="New">
               <i className="fa-solid fa-file"></i>
             </button>
             <button className="quick-access-btn" onClick={() => fileInputRef.current?.click()} title="Open">
@@ -382,7 +414,7 @@ function App() {
       {showFileMenu && (
         <FileMenu
           onClose={() => setShowFileMenu(false)}
-          onNew={handleNewWithClear}
+          onNew={handleNew}
           onOpen={() => {
             fileInputRef.current?.click();
             setShowFileMenu(false);
