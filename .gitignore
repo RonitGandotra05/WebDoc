@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local audit and test evidence (may contain private document data)
+/docs/EDITOR_AUDIT_AND_IMPLEMENTATION.md
+/docs/DocxViewer.before.jsx
+/docs/dependency-audit.json
+/tests/artifacts/
+/test-results/
+/playwright-report/
