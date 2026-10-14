@@ -1,169 +1,54 @@
-# Word Editor - React DOCX Editor
+<div align="center">
+  <img src="public/favicon.svg" width="72" height="72" alt="WebDoc logo" />
+  <h1>WebDoc</h1>
+  <p><strong>Your documents. Your browser. Your workspace.</strong></p>
+  <p>A polished document editor for writing, formatting, and working with DOCX files—without uploading your documents.</p>
+  <p><a href="https://webdoc-studio.netlify.app"><strong>Open WebDoc ↗</strong></a> · <a href="#get-started">Run locally</a> · <a href="docs/AUTOMATION_API.md">Automation API</a></p>
+</div>
 
-A fully functional, frontend-only Microsoft Word-like document editor built with React. This application provides a seamless DOCX editing experience directly in the browser without any backend dependencies.
+![WebDoc editor](docs/images/editor.png)
 
-![Word Editor](https://img.shields.io/badge/React-18-blue) ![License](https://img.shields.io/badge/License-MIT-green)
+## A familiar place to write
 
-## ✨ Features
+- **Word-style workspace:** organized ribbon, document styles, numbered ruler, page navigation, and zoom.
+- **Real editing:** text and paragraph formatting, tables, images, hyperlinks, search/replace, undo, and redo.
+- **Document tools:** margins, orientation, columns, headers, footers, page numbers, notes, comments, and tracked edits.
+- **Local-first saving:** continuous browser drafts, document history, and optional local DOCX overwrite every 30 seconds.
+- **Portable documents:** DOCX import/export and full-document print preparation.
+- **Built for future integrations:** structured editing commands and a local audio adapter. No AI provider is connected yet.
 
-### Document Editing
-- **Rich Text Formatting** - Bold, italic, underline, strikethrough, subscript, superscript
-- **Font Controls** - Font family selection, font size, text color, highlight color
-- **Paragraph Formatting** - Alignment (left, center, right, justify), line spacing
-- **Lists** - Bullet points and numbered lists
-- **Styles** - Normal, Heading 1-3, Title styles
+## Get started
 
-### DOCX Support
-- **Import** - Open and view DOCX files with full formatting preservation
-- **Export** - Save documents as valid DOCX files
-- **Styling Fidelity** - Maintains fonts, colors, spacing, and layout from original documents
-
-### Advanced Features
-- **Tables** - Insert and edit tables with visual grid picker
-- **Images** - Insert images from local files
-- **Search & Replace** - Find and replace text across the document
-- **Zoom Controls** - Zoom in/out for comfortable viewing
-- **Virtual Pagination** - Multi-page display with proper page breaks
-- **Auto-Save** - Documents persist across browser refreshes
-
-### Word-like UI
-- **Ribbon Interface** - Familiar tabbed toolbar (Home, Insert, Layout, View)
-- **File Menu** - New, Open, Save, Print operations
-- **Quick Access Toolbar** - Fast access to common actions
-- **Status Bar** - Page count, word count, zoom slider
-
-## 🛠️ Tech Stack
-
-| Technology | Purpose |
-|------------|---------|
-| **React 18** | UI framework |
-| **Vite** | Build tool & dev server |
-| **docx-preview** | DOCX → HTML rendering |
-| **docx** | HTML → DOCX generation |
-| **file-saver** | File download handling |
-| **jszip** | ZIP file operations |
-
-## 📦 Installation
-
-```bash
-# Clone or navigate to the project
-cd "docx project"
-
-# Install dependencies
-npm install
-
-# Start development server
+```sh
+npm ci
 npm run dev
 ```
 
-The app will be available at `http://localhost:5173/`
+Requires Node.js 22.12+ and npm. Open the address printed in your terminal.
 
-## 🚀 Usage
-
-### Creating a New Document
-1. Start typing in the editor
-2. Use the ribbon toolbar to format text
-3. Auto-save keeps your work safe
-
-### Importing a DOCX File
-1. Click **File → Open** or use `Ctrl+O`
-2. Select a `.docx` file from your computer
-3. The document will render with full formatting
-
-### Exporting to DOCX
-1. Click **File → Save as DOCX** or use `Ctrl+S`
-2. Enter a filename
-3. The file will download to your computer
-
-## ⌨️ Keyboard Shortcuts
-
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+N` | New document |
-| `Ctrl+O` | Open DOCX file |
-| `Ctrl+S` | Save as DOCX |
-| `Ctrl+B` | Bold |
-| `Ctrl+I` | Italic |
-| `Ctrl+U` | Underline |
-| `Ctrl+F` | Find & Replace |
-
-## 📁 Project Structure
-
-```
-docx-project/
-├── src/
-│   ├── components/
-│   │   ├── DocxViewer.jsx    # Main document renderer with pagination
-│   │   ├── Ribbon.jsx        # Toolbar with formatting controls
-│   │   ├── StatusBar.jsx     # Page/word count, zoom
-│   │   ├── FileMenu.jsx      # File operations menu
-│   │   ├── SearchPanel.jsx   # Find and replace
-│   │   └── TableDialog.jsx   # Table insertion dialog
-│   ├── utils/
-│   │   └── docxHandler.js    # DOCX import/export utilities
-│   ├── App.jsx               # Main application component
-│   ├── main.jsx              # React entry point
-│   └── index.css             # All styling (Word-like UI)
-├── index.html
-├── package.json
-└── vite.config.js
+```sh
+npm run build    # Production frontend in dist/
+npm run preview  # Preview the build
+npm run lint     # Code checks
+npm run api:check # Verify structured command schemas
 ```
 
-## 🔧 How It Works
+## Work with a document
 
-### DOCX Import Flow
-```
-User uploads .docx file
-        ↓
-docx-preview parses DOCX XML
-        ↓
-Renders to HTML with inline styles
-        ↓
-Virtual pagination splits into pages
-        ↓
-Display in React components
-```
+1. Choose **File → Open / Import DOCX**, or start a new document.
+2. Select text and use the ribbon to format it. Use **Find** or **Replace** to navigate and revise.
+3. Your browser draft saves continuously. To also save to disk, choose **File → Choose autosave file**.
+4. Press **Ctrl/Cmd+S** to save immediately, or **Export DOCX** to download a copy.
+5. Reopen drafts from **File → Document history**. Removed drafts can be restored or permanently deleted.
 
-### DOCX Export Flow
-```
-Get HTML content from editor
-        ↓
-Parse HTML structure
-        ↓
-Convert to docx.js elements
-        ↓
-Generate valid DOCX XML
-        ↓
-Download via file-saver
-```
+A local save destination is disconnected when you switch documents or reload. Browser file overwrite requires Chrome/Edge or another supporting browser; other browsers can still save drafts and download DOCX files. Browser data is specific to the current device, profile, and site address. Keep exported copies as backups.
 
-### Data Persistence
-- Documents auto-save to localStorage every 2 seconds
-- Both HTML content and CSS styles are preserved
-- Survives page refreshes and browser restarts
+## Compatibility
 
-## 📄 Page Dimensions
+WebDoc preserves the original bytes when exporting an untouched imported document. Edited files are serialized as editable DOCX. Complex layouts, unavailable fonts, advanced drawings, and some fields can differ from desktop Word; keep the original when working with important documents. Unsupported tools are identified in the interface. WebDoc does not claim complete Microsoft Word compatibility.
 
-The editor uses US Letter paper size by default:
+## For developers
 
-| Property | Value |
-|----------|-------|
-| Width | 816px (8.5" at 96 DPI) |
-| Height | 1056px (11" at 96 DPI) |
-| Margins | 96px (1" all sides) |
+The application is a React frontend with browser-based document processing and IndexedDB persistence. It needs no document-processing backend. Deploy the contents of `dist/` to a static HTTPS host; Netlify configuration is included.
 
-## 🤝 Contributing
-
-Contributions are welcome! Areas for improvement:
-- Full header/footer support
-- Comments and track changes
-- More export format options
-- Collaborative editing
-
-## 📝 License
-
-MIT License - Feel free to use this project for any purpose.
-
----
-
-**Built with ❤️ using React and docx-preview**
+The [automation guide](docs/AUTOMATION_API.md) documents command discovery, structured page reads, validated edits, revision guards, undo boundaries, and future model/audio integration.

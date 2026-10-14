@@ -30,3 +30,15 @@ dist-ssr
 /tests/artifacts/
 /test-results/
 /playwright-report/
+
+/docs/local-probes/
+
+# Local Netlify folder
+.netlify
+
+# Local-only verification and findings; application docs remain tracked.
+/tests/
+/playwright.config.mjs
+/scripts/verify-editor-snapshot.mjs
+/.netlify/
+/docs/images/history.png
