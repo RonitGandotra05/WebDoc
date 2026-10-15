@@ -25,8 +25,7 @@ import {
   Omega,
   Search,
   Replace,
-  Undo2,
-  Redo2,
+  TextSelect,
   Eraser,
   MessageSquarePlus,
   Check,
@@ -72,7 +71,7 @@ export function Tool({
       onMouseDown={(e) => e.preventDefault()}
       onClick={onClick}
     >
-      {Icon && <Icon size={compact ? 17 : 23} strokeWidth={1.6} />}
+      {Icon && <Icon size={compact ? 16 : 20} strokeWidth={1.6} />}
       <span>{label}</span>
     </button>
   );
@@ -93,6 +92,7 @@ export default function Ribbon({
   openImage,
   mode,
   setMode,
+  collapsed = false,
 }) {
   const states = editor.ui?.toolbar?.commands || {};
   const control = (id, label, icon, value, compact = false) => (
@@ -115,26 +115,34 @@ export default function Ribbon({
       compact={compact}
     />
   );
-  const select = (id, label, options) => (
-    <label className="ribbon-select">
-      <span>{label}</span>
-      <select
-        aria-label={label}
-        value={String(states[id]?.value ?? "")}
-        disabled={!editor.ready || editor.pending || !states[id]?.enabled}
-        onChange={(e) => editor.command(id, e.target.value)}
-      >
-        <option value="" disabled>
-          Mixed / select
-        </option>
-        {options.map(([value, text]) => (
-          <option key={value} value={value}>
-            {text}
+  const select = (id, label, options) => {
+    const defaults = {
+      "font-family": "Calibri",
+      "font-size": "11",
+      "line-height": "1",
+    };
+    const value = states[id]?.value ?? defaults[id] ?? "";
+    return (
+      <label className="ribbon-select">
+        <span>{label}</span>
+        <select
+          aria-label={label}
+          value={String(value)}
+          disabled={!editor.ready || editor.pending || !states[id]?.enabled}
+          onChange={(e) => editor.command(id, e.target.value)}
+        >
+          <option value="" disabled>
+            Mixed
           </option>
-        ))}
-      </select>
-    </label>
-  );
+          {options.map(([optionValue, text]) => (
+            <option key={optionValue} value={optionValue}>
+              {text}
+            </option>
+          ))}
+        </select>
+      </label>
+    );
+  };
   const fonts = [
     ...new Set([
       "Calibri",
@@ -146,8 +154,32 @@ export default function Ribbon({
       ...(editor.ui?.fonts?.options || []).map((f) => f.value),
     ]),
   ].map((x) => [x, x]);
+  const quickStyles = (editor.ui?.styles?.quickGallery || []).filter(
+    (style) => style.type === "paragraph" || style.type === "linked",
+  );
+  const defaultStyles = [
+    { id: "Normal", name: "Normal", type: "paragraph" },
+    { id: "NoSpacing", name: "No Spacing", type: "paragraph" },
+    { id: "Heading1", name: "Heading 1", type: "paragraph" },
+    { id: "Heading2", name: "Heading 2", type: "paragraph" },
+    { id: "Heading3", name: "Heading 3", type: "paragraph" },
+    { id: "Title", name: "Title", type: "paragraph" },
+  ];
+  const styleChoices = defaultStyles.map(
+    (fallback) =>
+      quickStyles.find(
+        (style) =>
+          style.id.toLowerCase() === fallback.id.toLowerCase() ||
+          style.name?.toLowerCase() === fallback.name.toLowerCase(),
+      ) || fallback,
+  );
   return (
-    <div className="ribbon" role="region" aria-label={`${tab} ribbon`}>
+    <div
+      id="editor-ribbon"
+      className={`ribbon ${collapsed ? "collapsed" : ""}`}
+      role="region"
+      aria-label={`${tab} ribbon`}
+    >
       {tab === "Home" && (
         <>
           <Group label="Clipboard">
@@ -307,17 +339,19 @@ export default function Ribbon({
           </Group>
           <Group label="Styles">
             <div className="style-gallery">
-              {(editor.ui?.styles?.quickGallery || [])
-                .filter((x) => x.type === "paragraph" || x.type === "linked")
-                .slice(0, 4)
-                .map((x) => (
+              {styleChoices.map((x) => (
                   <button
                     key={x.id}
                     disabled={!states["linked-style"]?.enabled}
                     className={
-                      editor.ui?.styles?.activeParagraphStyleId === x.id
-                        ? "selected"
-                        : ""
+                      [
+                        editor.ui?.styles?.activeParagraphStyleId === x.id
+                          ? "selected"
+                          : "",
+                        `style-${x.id.toLowerCase()}`,
+                      ]
+                        .filter(Boolean)
+                        .join(" ")
                     }
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => editor.command("linked-style", x.id)}
@@ -328,14 +362,6 @@ export default function Ribbon({
                     <small>{x.name || x.id}</small>
                   </button>
                 ))}
-              {select(
-                "linked-style",
-                "Paragraph style",
-                (editor.ui?.styles?.quickGallery || []).map((x) => [
-                  x.id,
-                  x.name || x.id,
-                ]),
-              )}
             </div>
           </Group>
           <Group label="Editing">
@@ -352,8 +378,13 @@ export default function Ribbon({
                 compact
                 onClick={() => setPanel("search")}
               />
-              {control("undo", "Undo", Undo2, undefined, true)}
-              {control("redo", "Redo", Redo2, undefined, true)}
+              <Tool
+                label="Select all"
+                icon={TextSelect}
+                compact
+                disabled={!editor.ready || editor.pending || mode === "viewing"}
+                onClick={() => editor.selectAll()}
+              />
             </div>
           </Group>
         </>

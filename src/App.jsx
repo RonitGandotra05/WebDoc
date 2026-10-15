@@ -6,6 +6,7 @@ import {
   Undo2,
   Redo2,
   ChevronDown,
+  ChevronUp,
   LockKeyhole,
   X,
   Printer,
@@ -14,8 +15,6 @@ import {
   Download,
   Info,
   BookOpen,
-  MessageSquare,
-  Pencil,
   Trash2,
   RotateCcw,
   Unplug,
@@ -34,6 +33,7 @@ export default function App() {
     selection = useRef(null);
   const editor = useDocumentEditor(container);
   const [tab, setTab] = useState("Home"),
+    [ribbonCollapsed, setRibbonCollapsed] = useState(false),
     [fileMenu, setFileMenu] = useState(false),
     [panel, setPanel] = useState(""),
     [modal, setModal] = useState(null),
@@ -110,6 +110,9 @@ export default function App() {
       if (key === "enter") {
         e.preventDefault();
         actionDialog("pageBreak", editor, editor.capture());
+      } else if (key === "f1") {
+        e.preventDefault();
+        setRibbonCollapsed((collapsed) => !collapsed);
       } else if (actions[key]) {
         e.preventDefault();
         e.stopImmediatePropagation();
@@ -132,6 +135,37 @@ export default function App() {
     root.addEventListener("scroll", scroll, true);
     return () => root.removeEventListener("scroll", scroll, true);
   }, [editor]);
+  useEffect(() => {
+    const root = container.current;
+    if (!root) return;
+    const syncRulerMargins = () => {
+      root.querySelectorAll(".v2-ruler").forEach((ruler) => {
+        const width = ruler.clientWidth || Number.parseFloat(ruler.style.width);
+        const left = Number.parseFloat(
+          ruler.querySelector(".v2-ruler__margin-handle--left")?.style.left,
+        );
+        const right = Number.parseFloat(
+          ruler.querySelector(".v2-ruler__margin-handle--right")?.style.left,
+        );
+        if (!width || !Number.isFinite(left) || !Number.isFinite(right)) return;
+        const start = `${((left / width) * 100).toFixed(3)}%`;
+        const end = `${((right / width) * 100).toFixed(3)}%`;
+        if (ruler.style.getPropertyValue("--ruler-content-start") !== start)
+          ruler.style.setProperty("--ruler-content-start", start);
+        if (ruler.style.getPropertyValue("--ruler-content-end") !== end)
+          ruler.style.setProperty("--ruler-content-end", end);
+      });
+    };
+    const observer = new MutationObserver(syncRulerMargins);
+    observer.observe(root, {
+      attributes: true,
+      attributeFilter: ["style"],
+      childList: true,
+      subtree: true,
+    });
+    syncRulerMargins();
+    return () => observer.disconnect();
+  }, [editor.ready]);
   const imageChange = async (e) => {
     const file = e.target.files[0];
     e.target.value = "";
@@ -263,7 +297,10 @@ export default function App() {
               aria-selected={tab === t}
               className={tab === t ? "active" : ""}
               onMouseDown={(e) => e.preventDefault()}
-              onClick={() => setTab(t)}
+              onClick={() => {
+                setTab(t);
+                setRibbonCollapsed(false);
+              }}
             >
               {t}
             </button>
@@ -280,6 +317,17 @@ export default function App() {
             : mode === "suggesting"
               ? "Suggesting"
               : "Editing"}
+        </button>
+        <button
+          type="button"
+          className="ribbon-toggle"
+          title={`${ribbonCollapsed ? "Expand" : "Collapse"} ribbon (Ctrl+F1)`}
+          aria-label={`${ribbonCollapsed ? "Expand" : "Collapse"} ribbon`}
+          aria-expanded={!ribbonCollapsed}
+          aria-controls="editor-ribbon"
+          onClick={() => setRibbonCollapsed((collapsed) => !collapsed)}
+        >
+          {ribbonCollapsed ? <ChevronDown size={15} /> : <ChevronUp size={15} />}
         </button>
         <button
           className="export-button"
@@ -301,6 +349,7 @@ export default function App() {
         }}
         mode={mode}
         setMode={setMode}
+        collapsed={ribbonCollapsed}
       />
       {editor.error && (
         <div className="notice error" role="alert">
@@ -442,47 +491,6 @@ export default function App() {
             {selectedWords} selected · {selectedText.length} characters
           </span>
         )}
-        <button
-          className="status-details"
-          title="Document statistics"
-          onClick={() => showDialog("info")}
-        >
-          {editor.info.counts.characters || 0} characters
-        </button>
-        <button
-          className="status-details"
-          title="Open comments and tracked changes"
-          onClick={() => setPanel(panel === "review" ? "" : "review")}
-        >
-          <MessageSquare size={13} />
-          {editor.info.counts.comments || 0} comments ·{" "}
-          {editor.info.counts.trackedChanges || 0} revisions
-        </button>
-        <span
-          className="status-save"
-          title={editor.saveState}
-          aria-live="polite"
-        >
-          <LockKeyhole size={12} />
-          {editor.saveState}
-        </span>
-        {editor.diskState.name && (
-          <button
-            className="status-details"
-            title={`${editor.diskState.status}: ${editor.diskState.name}`}
-            onClick={() => setFileMenu(true)}
-          >
-            <Save size={12} />
-            {editor.diskState.name}
-          </button>
-        )}
-        <span className="status-mode">
-          {mode === "viewing"
-            ? "Read only"
-            : mode === "suggesting"
-              ? "Track changes"
-              : "Editing"}
-        </span>
         <div className="status-views" role="group" aria-label="Document views">
           <button
             title="Read mode"
@@ -499,14 +507,6 @@ export default function App() {
             onClick={() => setMode("editing")}
           >
             <FileText size={15} />
-          </button>
-          <button
-            title="Suggest tracked changes"
-            aria-label="Tracked editing view"
-            aria-pressed={mode === "suggesting"}
-            onClick={() => setMode("suggesting")}
-          >
-            <Pencil size={15} />
           </button>
         </div>
         <div className="zoom-controls">

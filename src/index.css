@@ -1024,3 +1024,489 @@ button[aria-pressed="true"].tool {
 .file-legal-links span {
   margin-left: auto;
 }
+
+/* Compact Word-style chrome keeps the document canvas in view. */
+.titlebar {
+  height: 38px;
+  padding: 0 12px;
+  gap: 12px;
+}
+.brand {
+  gap: 7px;
+}
+.app-logo {
+  width: 27px;
+  height: 27px;
+  border-radius: 6px;
+}
+.brand strong {
+  font-size: 14px;
+}
+.brand input {
+  width: 210px;
+  font-size: 12px;
+}
+.title-divider {
+  height: 16px;
+  margin: 0 4px;
+}
+.quick-actions {
+  gap: 2px;
+}
+.quick-actions button {
+  padding: 4px;
+}
+.tabbar {
+  min-height: 33px;
+  height: 33px;
+  padding: 0 9px;
+  gap: 3px;
+}
+.tabbar [role="tab"] {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+.tabbar [role="tab"].active:after {
+  height: 2px;
+}
+.file-tab {
+  padding: 5px 10px;
+  font-size: 12px;
+}
+.mode-picker {
+  padding: 4px 7px;
+  gap: 4px;
+  font-size: 11px;
+}
+.ribbon-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 27px;
+  height: 26px;
+  margin-left: 0;
+  padding: 4px;
+  color: #4c5b70;
+  border: 1px solid transparent;
+}
+.ribbon-toggle:hover {
+  background: #edf3fb;
+  border-color: #d8e2f0;
+}
+.tabbar .export-button {
+  margin-left: 2px;
+  padding: 5px 8px;
+  font-size: 11px;
+}
+.ribbon {
+  min-height: 96px;
+  padding: 5px 7px 3px;
+}
+.ribbon.collapsed {
+  display: none;
+}
+.ribbon-group {
+  padding: 0 10px;
+  gap: 2px;
+}
+.ribbon-group:not(:last-child)::after {
+  top: 3px;
+  bottom: 5px;
+}
+.group-body {
+  min-height: 65px;
+  gap: 5px;
+}
+.ribbon-group > small {
+  font-size: 10px;
+  line-height: 14px;
+  padding-top: 1px;
+}
+.tool {
+  min-height: 49px;
+  max-width: 76px;
+  gap: 4px;
+  padding: 4px 6px;
+  font-size: 10px;
+  line-height: 1.2;
+}
+.tool.compact {
+  min-height: 22px;
+  padding: 2px 4px;
+  gap: 4px;
+}
+.tool.compact span {
+  font-size: 10px;
+}
+.row {
+  gap: 4px;
+}
+.stack {
+  gap: 2px;
+}
+.ribbon-select select {
+  max-width: 124px;
+  min-width: 60px;
+  padding: 3px 4px;
+  font-size: 10px;
+}
+.color-control {
+  font-size: 9px;
+}
+.color-control input {
+  width: 19px;
+  height: 18px;
+}
+.style-gallery {
+  gap: 4px;
+}
+.style-gallery > button {
+  width: 63px;
+  height: 55px;
+  gap: 4px;
+  padding: 4px;
+}
+.style-gallery strong {
+  font-size: 15px;
+}
+.style-gallery small {
+  font-size: 9px;
+}
+.editor-scroll .v2-ruler-host {
+  padding: 0 0 3px;
+}
+.editor-scroll .v2-ruler {
+  border-radius: 2px;
+  box-shadow: 0 1px 2px #0000000a;
+}
+.editor-scroll .v2-ruler__numbering {
+  font-size: 10px !important;
+  line-height: 11px !important;
+  top: -15px !important;
+}
+:root {
+  font-family: "Segoe UI", Arial, sans-serif;
+  font-size: 12px;
+  color: #242424;
+}
+.titlebar {
+  background: #185abd;
+  gap: 10px;
+}
+.brand strong {
+  font-size: 13px;
+  letter-spacing: 0;
+}
+.brand input {
+  width: 180px;
+  font-size: 12px;
+}
+.local-status {
+  gap: 5px;
+  font-size: 11px;
+}
+.quick-actions button {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+}
+.tabbar {
+  background: #fff;
+  border-bottom-color: #d1d1d1;
+}
+.tabbar [role="tab"],
+.file-tab {
+  color: #333;
+  font-size: 12px;
+  font-weight: 400;
+}
+.tabbar [role="tab"]:hover:not(:disabled),
+.file-tab:hover:not(:disabled) {
+  background: #f3f2f1;
+}
+.tabbar [role="tab"].active {
+  color: #185abd;
+}
+.tabbar [role="tab"].active:after {
+  left: 9px;
+  right: 9px;
+  height: 2px;
+}
+.file-tab {
+  color: #185abd;
+  font-weight: 600;
+}
+.mode-picker {
+  border-color: #c8c6c4;
+  border-radius: 2px;
+  background: #fff;
+  color: #333;
+}
+.mode-picker:hover:not(:disabled) {
+  background: #f3f2f1;
+  border-color: #8a8886;
+}
+.ribbon {
+  align-items: stretch;
+  background: #fff;
+  border-bottom-color: #d1d1d1;
+  box-shadow: none;
+  gap: 0;
+  padding-top: 8px;
+}
+.ribbon-group {
+  padding: 0 9px;
+}
+.ribbon-group:not(:last-child)::after {
+  background: #e1dfdd;
+}
+.ribbon-group > small {
+  color: #605e5c;
+  font-size: 10px;
+  line-height: 13px;
+  font-weight: 400;
+}
+.tool {
+  min-width: 30px;
+  color: #242424;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  font-size: 10px;
+}
+.tool svg {
+  color: #343a40;
+}
+.tool:hover:not(:disabled) {
+  background: #f3f2f1;
+  border-color: #c8c6c4;
+}
+.tool.selected,
+button[aria-pressed="true"].tool {
+  background: #d9eaf7;
+  border-color: #8cbde3;
+  color: #164e7a;
+}
+.tool.selected svg,
+button[aria-pressed="true"].tool svg {
+  color: #164e7a;
+}
+.ribbon-select select {
+  height: 24px;
+  border-color: #c8c6c4;
+  border-radius: 2px;
+  background-color: #fff;
+  color: #242424;
+  font-family: inherit;
+  font-size: 11px;
+}
+.ribbon-group[aria-label="Font"] .row:first-child .ribbon-select:first-child select {
+  width: 142px;
+  max-width: none;
+}
+.ribbon-group[aria-label="Font"] .row:first-child .ribbon-select:last-child select {
+  width: 50px;
+  min-width: 50px;
+  max-width: none;
+}
+.ribbon-group[aria-label="Paragraph"] .row:last-child .ribbon-select select {
+  width: 84px;
+  min-width: 84px;
+}
+.color-control {
+  color: #343a40;
+  font-size: 9px;
+  white-space: nowrap;
+}
+.style-gallery > button {
+  border-color: #d1d1d1;
+  border-radius: 2px;
+  box-shadow: none;
+}
+.style-gallery > button:hover:enabled {
+  background: #f3f2f1;
+  border-color: #8a8886;
+}
+.style-gallery > button.selected {
+  background: #d9eaf7;
+  border-color: #70a9d3;
+}
+.ribbon-toggle {
+  border-radius: 2px;
+}
+.ribbon-toggle:hover {
+  background: #f3f2f1;
+  border-color: #c8c6c4;
+}
+.tabbar .export-button {
+  border-radius: 2px;
+  background: #185abd;
+  color: #fff;
+}
+.tabbar .export-button:hover:not(:disabled) {
+  background: #104b9f;
+}
+.editor-scroll .v2-ruler-host {
+  background: transparent;
+}
+.editor-scroll .v2-ruler {
+  border-color: #d1d1d1;
+  box-shadow: 0 1px 2px #0000000a;
+}
+@media (max-width: 900px) {
+  .ribbon-group {
+    padding: 0 7px;
+  }
+}
+@media (max-width: 650px) {
+  .titlebar {
+    height: 36px;
+    padding: 0 8px;
+  }
+  .brand input {
+    width: 140px;
+  }
+  .tabbar {
+    min-height: 32px;
+    height: 32px;
+    padding: 0 5px;
+  }
+  .tabbar [role="tab"] {
+    padding: 5px 7px;
+  }
+  .ribbon {
+    min-height: 90px;
+  }
+  .group-body {
+    min-height: 60px;
+  }
+}
+
+/* Word for the web uses a light document header and a restrained status row. */
+.titlebar {
+  height: 42px;
+  background: #fff;
+  color: #242424;
+  border-bottom: 1px solid #dadce0;
+  gap: 10px;
+}
+.app-logo {
+  box-shadow: none;
+}
+.brand strong {
+  color: #185abd;
+  font-weight: 600;
+}
+.brand input {
+  color: #242424;
+}
+.brand input:focus {
+  background: #f3f2f1;
+  border-color: #8a8886;
+}
+.title-divider {
+  background: #dadce0;
+}
+.local-status {
+  color: #5f6368;
+}
+.local-status svg {
+  color: #5f6368;
+}
+.titlebar button {
+  color: #5f6368;
+}
+.titlebar button:hover {
+  background: #f3f2f1;
+}
+.statusbar {
+  height: 28px;
+  min-height: 28px;
+  padding: 0 10px;
+  gap: 8px;
+  background: #f3f3f3;
+  border-top-color: #d6d6d6;
+  font-size: 11px;
+}
+.statusbar button {
+  padding: 2px 5px;
+}
+.status-details,
+.status-save,
+.status-mode {
+  display: none !important;
+}
+.status-views {
+  margin-left: auto;
+  padding-right: 8px;
+}
+.status-views button {
+  width: 27px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+}
+.zoom-controls {
+  gap: 4px;
+}
+.zoom-controls input {
+  width: 105px;
+}
+.style-gallery {
+  gap: 4px;
+}
+.style-gallery > button {
+  width: 63px;
+  height: 55px;
+  flex: 0 0 63px;
+  padding: 4px 3px;
+}
+.style-gallery strong {
+  font-family: Calibri, "Segoe UI", sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  color: #444;
+}
+.style-gallery > button[class*="style-heading1"] strong,
+.style-gallery > button[class*="style-title"] strong {
+  font-size: 16px;
+  font-weight: 600;
+  color: #234e77;
+}
+.style-gallery > button[class*="style-heading2"] strong,
+.style-gallery > button[class*="style-heading3"] strong {
+  font-size: 14px;
+  font-weight: 600;
+  color: #234e77;
+}
+.style-gallery > button[class*="style-nospace"] strong,
+.style-gallery > button[class*="style-nospacing"] strong {
+  font-size: 12px;
+}
+.editor-scroll .v2-ruler {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: #e6e6e6;
+  border-color: #c7c7c7;
+}
+.editor-scroll .v2-ruler::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  top: 0;
+  bottom: 0;
+  left: var(--ruler-content-start, 11.76%);
+  right: calc(100% - var(--ruler-content-end, 88.24%));
+  background: #fff;
+  border-left: 1px solid #d1d1d1;
+  border-right: 1px solid #d1d1d1;
+  pointer-events: none;
+}
+.editor-scroll .v2-ruler > * {
+  z-index: 1;
+}
