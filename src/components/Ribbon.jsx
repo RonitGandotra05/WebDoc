@@ -43,6 +43,7 @@ import {
   LayoutTemplate,
   Rows3,
   Columns3,
+  Redo2,
   Trash2,
   Combine,
   Split,

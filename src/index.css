@@ -1510,3 +1510,228 @@ button[aria-pressed="true"].tool svg {
 .editor-scroll .v2-ruler > * {
   z-index: 1;
 }
+
+/* Keep the document and controls comfortable on narrow, touch-first screens. */
+@media (max-width: 650px) {
+  .app-shell {
+    width: 100%;
+    min-width: 0;
+    height: 100dvh;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  .titlebar {
+    min-width: 0;
+    height: 42px;
+    padding: 0 8px;
+    gap: 6px;
+  }
+
+  .brand {
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 5px;
+  }
+
+  .brand strong,
+  .title-divider {
+    display: none;
+  }
+
+  .brand input {
+    flex: 1 1 auto;
+    width: clamp(76px, 28vw, 140px);
+    min-width: 0;
+    padding: 4px 3px;
+    font-size: 12px;
+  }
+
+  .quick-actions {
+    flex: 0 0 auto;
+    gap: 0;
+  }
+
+  .quick-actions button {
+    display: inline-flex;
+    width: 34px;
+    height: 34px;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .local-status,
+  .mode-picker {
+    display: none !important;
+  }
+
+  .tabbar {
+    width: 100%;
+    min-width: 0;
+    min-height: 38px;
+    height: 38px;
+    flex: 0 0 auto;
+    gap: 2px;
+    padding: 0 5px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .tabbar::-webkit-scrollbar,
+  .ribbon::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tabbar > *,
+  .tabbar [role="tablist"] {
+    flex: 0 0 auto;
+  }
+
+  .tabbar [role="tablist"] {
+    min-width: max-content;
+  }
+
+  .tabbar [role="tab"] {
+    min-height: 36px;
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+
+  .tabbar .file-tab {
+    min-height: 36px;
+    padding: 5px 8px;
+  }
+
+  .tabbar .ribbon-toggle,
+  .tabbar .export-button {
+    min-width: 36px;
+    min-height: 34px;
+    justify-content: center;
+    margin: 0;
+  }
+
+  .tabbar .export-button {
+    font-size: 0;
+    padding: 6px;
+  }
+
+  .tabbar .export-button svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .ribbon {
+    min-width: 0;
+    min-height: 0;
+    max-height: min(210px, 32dvh);
+    flex: 0 0 auto;
+    gap: 0;
+    padding: 6px 4px 4px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .ribbon-group {
+    padding: 0 8px;
+  }
+
+  .group-body {
+    min-height: 62px;
+  }
+
+  .tool {
+    min-height: 44px;
+  }
+
+  .tool.compact {
+    min-height: 30px;
+  }
+
+  .ribbon-select select {
+    min-height: 32px;
+    font-size: 11px;
+  }
+
+  .editor-scroll {
+    min-width: 0;
+    padding: 8px 6px;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .editor-scroll .v2-ruler-host {
+    max-width: 100%;
+  }
+
+  .side-panel {
+    width: min(320px, calc(100vw - 24px));
+    max-width: calc(100vw - 24px);
+  }
+
+  .statusbar {
+    min-height: 36px;
+    height: 36px;
+    flex: 0 0 auto;
+    gap: 3px;
+    padding: 0 7px;
+    overflow: hidden;
+  }
+
+  .statusbar > button {
+    min-height: 32px;
+    padding: 3px 5px;
+  }
+
+  .status-views {
+    gap: 0;
+    padding-right: 3px;
+  }
+
+  .status-views button {
+    min-width: 32px;
+    min-height: 32px;
+  }
+
+  .zoom-controls {
+    flex: 0 0 auto;
+    gap: 1px;
+  }
+
+  .zoom-controls input {
+    width: clamp(42px, 14vw, 76px);
+    min-width: 42px;
+  }
+
+  .zoom-controls button {
+    min-width: 32px;
+    min-height: 32px;
+    padding: 2px 4px;
+  }
+}
+
+@media (max-width: 420px) {
+  .status-views {
+    display: none;
+  }
+
+  .zoom-controls input,
+  .zoom-controls button[aria-label="Zoom out"],
+  .zoom-controls button[aria-label="Zoom in"] {
+    display: none;
+  }
+
+  .zoom-controls button[aria-label="Reset zoom"] {
+    min-width: 42px;
+  }
+
+  .statusbar {
+    justify-content: space-between;
+  }
+}

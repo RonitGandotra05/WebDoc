@@ -31,9 +31,14 @@ export default function App() {
     fileInput = useRef(null),
     imageInput = useRef(null),
     selection = useRef(null);
+  const mobileFitZoom = useRef(null),
+    mobileFitDisabled = useRef(false),
+    zoomRef = useRef(100);
   const editor = useDocumentEditor(container);
   const [tab, setTab] = useState("Home"),
-    [ribbonCollapsed, setRibbonCollapsed] = useState(false),
+    [ribbonCollapsed, setRibbonCollapsed] = useState(() =>
+      window.matchMedia?.("(max-width: 650px)").matches ?? false,
+    ),
     [fileMenu, setFileMenu] = useState(false),
     [panel, setPanel] = useState(""),
     [modal, setModal] = useState(null),
@@ -209,6 +214,56 @@ export default function App() {
     setFileMenu(false);
     editor.open(file);
     setModeState("editing");
+  };
+  useEffect(() => {
+    zoomRef.current = zoom;
+  }, [zoom]);
+  useEffect(() => {
+    const root = container.current;
+    if (!editor.ready || !root || !window.ResizeObserver) return;
+
+    const fitPageToMobileViewport = () => {
+      const isMobile = window.matchMedia("(max-width: 650px)").matches;
+      if (!isMobile) {
+        if (
+          !mobileFitDisabled.current &&
+          mobileFitZoom.current !== null &&
+          zoomRef.current === mobileFitZoom.current
+        ) {
+          editor.instance.current?.setZoom(100);
+        }
+        mobileFitZoom.current = null;
+        mobileFitDisabled.current = false;
+        return;
+      }
+      if (mobileFitDisabled.current) return;
+
+      const documentWidth =
+        editor.instance.current?.getViewportMetrics?.().documentWidth || 816;
+      const availableWidth = Math.max(1, root.clientWidth - 16);
+      const nextZoom = Math.max(
+        25,
+        Math.min(100, Math.floor((availableWidth / documentWidth) * 100)),
+      );
+      if (mobileFitZoom.current === null || zoomRef.current === mobileFitZoom.current) {
+        if (zoomRef.current !== nextZoom) {
+          mobileFitZoom.current = nextZoom;
+          editor.instance.current?.setZoom(nextZoom);
+        } else {
+          mobileFitZoom.current = nextZoom;
+        }
+      }
+    };
+
+    const observer = new ResizeObserver(fitPageToMobileViewport);
+    observer.observe(root);
+    fitPageToMobileViewport();
+    return () => observer.disconnect();
+  }, [editor.ready, editor.instance]);
+  const setManualZoom = (value) => {
+    mobileFitZoom.current = null;
+    mobileFitDisabled.current = true;
+    editor.instance.current?.setZoom(value);
   };
   return (
     <div className="app-shell" data-ready={editor.ready}>
@@ -514,7 +569,7 @@ export default function App() {
             aria-label="Zoom out"
             disabled={!editor.ready}
             onClick={() =>
-              editor.instance.current.setZoom(Math.max(25, zoom - 10))
+              setManualZoom(Math.max(25, zoom - 10))
             }
           >
             −
@@ -527,14 +582,14 @@ export default function App() {
             value={zoom}
             disabled={!editor.ready}
             onChange={(e) =>
-              editor.instance.current.setZoom(Number(e.target.value))
+              setManualZoom(Number(e.target.value))
             }
           />
           <button
             aria-label="Zoom in"
             disabled={!editor.ready}
             onClick={() =>
-              editor.instance.current.setZoom(Math.min(200, zoom + 10))
+              setManualZoom(Math.min(200, zoom + 10))
             }
           >
             +
@@ -542,7 +597,7 @@ export default function App() {
           <button
             aria-label="Reset zoom"
             disabled={!editor.ready}
-            onClick={() => editor.instance.current.setZoom(100)}
+            onClick={() => setManualZoom(100)}
           >
             {Math.round(zoom)}%
           </button>
